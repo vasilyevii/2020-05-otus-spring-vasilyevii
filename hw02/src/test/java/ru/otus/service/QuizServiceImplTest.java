@@ -1,6 +1,8 @@
 package ru.otus.service;
 
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -8,7 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.otus.dao.QuizDao;
 import ru.otus.model.Question;
 import ru.otus.model.Quiz;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -20,7 +21,13 @@ import static org.mockito.BDDMockito.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("Сервис работы с опросом ")
 class QuizServiceImplTest {
+
+    private static final String RIGHT_OUTPUT_MSG = "You're right!";
+    private static final String WRONG_OUTPUT_MSG = "Try again!";
+    private static final String RIGHT_ANSWER = "right answer";
+    private static final String WRONG_ANSWER = "wrong answer";
 
     @Mock
     private QuizDao quizDao;
@@ -30,46 +37,42 @@ class QuizServiceImplTest {
     @BeforeEach
     void setUp() {
         List<Question> questions = new ArrayList<>();
-        questions.add(new Question("text", "inputType", "right answer"));
+        questions.add(new Question("text", "inputType", RIGHT_ANSWER));
         quiz = new Quiz(questions);
     }
 
-    @Test
-    void getQuiz() {
-        QuizService quizService = new QuizServiceImpl(quizDao, new ConsoleServiceImpl());
-        given(quizDao.getQuiz()).willReturn(quiz);
-        assertThat(quizService.getQuiz()).isEqualTo(quiz);
-    }
-
+    @DisplayName("должен отвечать правильно")
     @Test
     void runQuizRightAnswer() {
-        runQuiz("right answer", "You're right!");
+        runQuiz(RIGHT_ANSWER, RIGHT_OUTPUT_MSG);
     }
 
+    @DisplayName("должен отвечать не правильно")
     @Test
     void runQuizWrongAnswer() {
-        runQuiz("wrong answer", "Try again!");
+        runQuiz(WRONG_ANSWER, WRONG_OUTPUT_MSG);
     }
 
+    @SneakyThrows
     void runQuiz(String answer, String outputMsg) {
+
+        given(quizDao.getQuiz()).willReturn(quiz);
 
         InputStream stdin = System.in;
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        try {
+        System.setIn(new ByteArrayInputStream(answer.getBytes()));
+        System.setOut(new PrintStream(output));
 
-            System.setIn(new ByteArrayInputStream(answer.getBytes()));
-            System.setOut(new PrintStream(output));
+        IOService ioService = new ConsoleIOService(System.in, new PrintStream(output));
+        QuizService quizService = new QuizServiceImpl(quizDao, ioService);
+        quizService.runQuiz();
 
-            QuizService quizService = new QuizServiceImpl(quizDao, new ConsoleServiceImpl());
-            quizService.runQuiz(quiz);
+        assertThat(output.toString().trim()).isEqualTo("text(inputType):\r\n" + outputMsg);
 
-            assertThat(output.toString().trim()).isEqualTo("text(inputType):\r\n" + outputMsg);
+        System.setIn(stdin);
+        System.setOut(null);
 
-        } finally {
-            System.setIn(stdin);
-            System.setOut(null);
-        }
     }
 
 }
