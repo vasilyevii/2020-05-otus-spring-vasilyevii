@@ -1,0 +1,5 @@
+quiz:
+  locale: en
+  questionsFileName: "questions_en.csv"
+  commaDelimiter: ","
+
