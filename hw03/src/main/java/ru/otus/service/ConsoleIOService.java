@@ -1,5 +1,7 @@
 package ru.otus.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
@@ -12,7 +14,10 @@ import java.util.Scanner;
 @Service
 public class ConsoleIOService implements IOService {
 
+//    @Autowired
+//    @Qualifier("reloadableResourceBundleMessageSource")
     private final MessageSource messageSource;
+
     private final QuizProps props;
 
     private final PrintStream out;

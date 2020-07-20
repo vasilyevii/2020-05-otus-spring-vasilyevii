@@ -1,5 +1,9 @@
 quiz:
-  locale: ru_RU
+  locale: en
   questionsFileName: "questions_ru.csv"
   commaDelimiter: ","
 
+spring:
+  messages:
+    basename: i18n/bundle, bundle
+    encoding: UTF-8
