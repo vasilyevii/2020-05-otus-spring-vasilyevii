@@ -1,6 +1,6 @@
 quiz:
   locale: en
-  questionsFileName: "questions_ru.csv"
+  questionsFileName: "questions_en.csv"
   commaDelimiter: ","
 
 spring:

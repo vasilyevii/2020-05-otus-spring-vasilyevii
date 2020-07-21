@@ -3,3 +3,7 @@ quiz:
   questionsFileName: "questions_en.csv"
   commaDelimiter: ","
 
+spring:
+  messages:
+    basename: i18n/bundle, bundle
+    encoding: UTF-8
