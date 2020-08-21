@@ -17,19 +17,20 @@ public class GenreDaoImpl implements GenreDao {
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
-    public void insert(Genre genre) {
+    public long insert(Genre genre) {
         final Map<String, Object> params = new HashMap<>(1);
-        params.put("name", genre.getName());
-        jdbc.update("insert into genres (name) values (:name)", params);
+        params.put("NAME", genre.getName());
+        jdbc.update("INSERT INTO GENRES (NAME) VALUES (:NAME)", params);
+        return jdbc.queryForObject("CALL SCOPE_IDENTITY()", new HashMap<>(0), Long.class);
     }
 
     @Override
     public Optional<Genre> getByName(String name) {
         final Map<String, Object> params = new HashMap<>(1);
-        params.put("name", name);
+        params.put("NAME", name);
         try {
             return Optional.ofNullable(
-                    jdbc.queryForObject("select * from genres where name = :name", params, new GenreMapper()));
+                    jdbc.queryForObject("SELECT * FROM GENRES WHERE NAME = :NAME", params, new GenreMapper()));
         } catch (DataAccessException e) {
             return Optional.empty();
         }

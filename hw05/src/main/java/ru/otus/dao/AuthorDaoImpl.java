@@ -17,19 +17,20 @@ public class AuthorDaoImpl implements AuthorDao {
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
-    public void insert(Author author) {
+    public long insert(Author author) {
         final Map<String, Object> params = new HashMap<>(1);
-        params.put("name", author.getName());
-        jdbc.update("insert into authors (name) values (:name)", params);
+        params.put("NAME", author.getName());
+        jdbc.update("INSERT INTO AUTHORS (NAME) VALUES (:NAME)", params);
+        return jdbc.queryForObject("CALL SCOPE_IDENTITY()", new HashMap<>(0), Long.class);
     }
 
     @Override
     public Optional<Author> getByName(String name) {
         final Map<String, Object> params = new HashMap<>(1);
-        params.put("name", name);
+        params.put("NAME", name);
         try {
             return Optional.ofNullable(
-                    jdbc.queryForObject("select * from authors where name = :name", params, new AuthorMapper()));
+                    jdbc.queryForObject("SELECT * FROM AUTHORS WHERE NAME = :NAME", params, new AuthorMapper()));
         } catch (DataAccessException e) {
             return Optional.empty();
         }

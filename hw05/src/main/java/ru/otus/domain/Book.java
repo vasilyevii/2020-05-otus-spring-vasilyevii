@@ -15,13 +15,10 @@ public class Book {
     private final long id;
     private String name;
     private final List<Author> authors;
-    private final List<Genre> genres;
+    private Genre genre;
 
     public void addAuthor(Author author) {
         this.authors.add(author);
     }
 
-    public void addGenre(Genre genre) {
-        this.genres.add(genre);
-    }
 }

@@ -1,13 +1,8 @@
 package ru.otus.domain;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-@RequiredArgsConstructor
-@ToString(callSuper=true, includeFieldNames=true)
-@Data
-public class Genre {
-    private final String name;
+public class Genre extends BookProperties {
+    public Genre(long id, String name) {
+        super(id, name);
+    }
 }
 

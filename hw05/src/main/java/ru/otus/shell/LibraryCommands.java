@@ -19,7 +19,7 @@ import java.util.List;
 public class LibraryCommands {
 
     @Autowired
-    BookService bookService;
+    private BookService bookService;
 
     @ShellMethod(value = "Get all books", key = {"l", "list"})
     public void getAllBooks() {
@@ -32,27 +32,20 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Add book", key = {"a", "add"})
-    public void addBook(@ShellOption(defaultValue = "0") int bookId, @ShellOption String bookName,
-                        @ShellOption(defaultValue = "") String author, @ShellOption(defaultValue = "") String genre) {
+    public void addBook(@ShellOption Integer bookID, @ShellOption String bookName,
+                        @ShellOption(defaultValue = "") String author,
+                        @ShellOption(defaultValue = "") String genre) {
 
         List<Author> authors = new ArrayList<>();
         Arrays.asList(author.split(";")).forEach(str -> {
             String authorName = str.trim();
             if (!authorName.isEmpty()) {
-                authors.add(new Author(authorName));
+                authors.add(new Author(0, authorName));
             }
         });
 
-        List<Genre> genres = new ArrayList<>();
-        Arrays.asList(genre.split(";")).forEach(str -> {
-            String genreName = str.trim();
-            if (!genreName.isEmpty()) {
-                genres.add(new Genre(genreName));
-            }
-        });
-
-        long id = bookService.addBook(new Book(bookId, bookName, authors, genres));
-        System.out.println("Book added! " + bookService.getBookById(id));
+        Book book = bookService.addBook(new Book(bookID, bookName, authors, new Genre(0, genre)));
+        System.out.println("Book added! " + book);
     }
 
     @ShellMethod(value = "Delete book", key = {"d", "del"})

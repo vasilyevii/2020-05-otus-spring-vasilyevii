@@ -2,7 +2,8 @@ package ru.otus.dao;
 
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
 import ru.otus.domain.Author;
 import ru.otus.domain.Book;
 import ru.otus.domain.Genre;
@@ -16,7 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 
 @DisplayName("Дао работы с книгами")
-@SpringBootTest
+@JdbcTest
+@Import({BookDaoImpl.class, AuthorDaoImpl.class, GenreDaoImpl.class})
 class BookDaoImplTest {
 
     private static final long NEW_BOOK_ID = 5;
@@ -26,10 +28,13 @@ class BookDaoImplTest {
     private static final long THIRD_EXISTING_BOOK_ID = 3;
     private static final String THIRD_EXISTING_BOOK_NAME = "Complete reference 11";
     private static final long FOURTH_EXISTING_BOOK_ID = 4;
+
+    private static final long FIRST_AUTHOR_ID = 1;
     private static final String FIRST_AUTHOR_NAME = "George Orwell";
+    private static final long SECOND_AUTHOR_ID = 2;
     private static final String SECOND_AUTHOR_NAME = "Stephane Faroult";
+    private static final long FIRST_GENRE_ID = 1;
     private static final String FIRST_GENRE_NAME = "Dystopian Fiction";
-    private static final String SECOND_GENRE_NAME = "Censorship & Politics";
 
     @Autowired
     BookDao bookDao;
@@ -38,8 +43,9 @@ class BookDaoImplTest {
     @Test
     void shouldInsertNewBook() {
         List<Author> authors = new ArrayList<>();
-        List<Genre> genres = new ArrayList<>();
-        Book expectedBook = new Book(0, NEW_BOOK_NAME, authors, genres);
+        authors.add(new Author(FIRST_AUTHOR_ID, FIRST_AUTHOR_NAME));
+        Genre genre = new Genre(FIRST_GENRE_ID, FIRST_GENRE_NAME);
+        Book expectedBook = new Book(0, NEW_BOOK_NAME, authors, genre);
         long id = bookDao.insert(expectedBook);
         Optional<Book> actualBook = bookDao.getById(id);
 
@@ -47,8 +53,8 @@ class BookDaoImplTest {
                 () -> assertThat(actualBook).isNotEmpty(),
                 () -> assertThat(actualBook.get().getId()).isEqualTo(NEW_BOOK_ID),
                 () -> assertThat(actualBook.get().getName()).isEqualTo(NEW_BOOK_NAME),
-                () -> assertThat(actualBook.get().getAuthors()).isEmpty(),
-                () -> assertThat(actualBook.get().getGenres()).isEmpty()
+                () -> assertThat(actualBook.get().getAuthors()).isEqualTo(authors),
+                () -> assertThat(actualBook.get().getGenre()).isEqualTo(genre)
         );
     }
 
@@ -81,20 +87,18 @@ class BookDaoImplTest {
                 () -> assertThat(book).isNotEmpty(),
                 () -> assertThat(book.get().getId()).isEqualTo(THIRD_EXISTING_BOOK_ID),
                 () -> assertThat(book.get().getName()).isEqualTo(THIRD_EXISTING_BOOK_NAME),
-                () -> assertThat(book.get().getAuthors()).isEmpty(),
-                () -> assertThat(book.get().getGenres()).isEmpty()
+                () -> assertThat(book.get().getAuthors()).isEmpty()
         );
     }
 
     @DisplayName("должен добавлять автора книги")
     @Test
     void shouldAddTheAuthorOfTheBook() {
-        Author author1 = new Author(FIRST_AUTHOR_NAME);
-        Author author2 = new Author(SECOND_AUTHOR_NAME);
-        Book book = bookDao.getById(THIRD_EXISTING_BOOK_ID).get();
-        bookDao.insertBookAuthorRelation(THIRD_EXISTING_BOOK_ID, FIRST_AUTHOR_NAME);
-        bookDao.insertBookAuthorRelation(THIRD_EXISTING_BOOK_ID, SECOND_AUTHOR_NAME);
-        List<Author> bookAuthors = bookDao.getBookAuthors(book);
+        Author author1 = new Author(FIRST_AUTHOR_ID, FIRST_AUTHOR_NAME);
+        Author author2 = new Author(SECOND_AUTHOR_ID, SECOND_AUTHOR_NAME);
+        bookDao.insertBookAuthorRelation(THIRD_EXISTING_BOOK_ID, FIRST_AUTHOR_ID);
+        bookDao.insertBookAuthorRelation(THIRD_EXISTING_BOOK_ID, SECOND_AUTHOR_ID);
+        List<Author> bookAuthors = bookDao.getById(THIRD_EXISTING_BOOK_ID).get().getAuthors();
 
         assertThat(bookAuthors)
                 .isNotEmpty()
@@ -107,7 +111,7 @@ class BookDaoImplTest {
     void shouldDeleteAllAuthorsOfTheBook() {
         Book book = bookDao.getById(FIRST_EXISTING_BOOK_ID).get();
         bookDao.deleteBookAuthorRelations(book);
-        List<Author> bookAuthors = bookDao.getBookAuthors(book);
+        List<Author> bookAuthors = bookDao.getById(FIRST_EXISTING_BOOK_ID).get().getAuthors();
 
         assertThat(bookAuthors).isEmpty();
     }
@@ -115,54 +119,14 @@ class BookDaoImplTest {
     @DisplayName("должен получать список всех авторов книги")
     @Test
     void shouldGetAListOfAllAuthorsOfTheBook() {
-        Author author1 = new Author(FIRST_AUTHOR_NAME);
-        Author author2 = new Author(SECOND_AUTHOR_NAME);
+        Author author1 = new Author(FIRST_AUTHOR_ID, FIRST_AUTHOR_NAME);
+        Author author2 = new Author(SECOND_AUTHOR_ID, SECOND_AUTHOR_NAME);
         Book book = bookDao.getById(FOURTH_EXISTING_BOOK_ID).get();
-        List<Author> bookAuthors = bookDao.getBookAuthors(book);
+        List<Author> bookAuthors = book.getAuthors();
 
         assertThat(bookAuthors)
                 .isNotEmpty()
                 .hasSize(2)
                 .contains(author1, author2);
-    }
-
-    @DisplayName("должен добавлять жанр книги")
-    @Test
-    void shouldAddTheGenreOfTheBook() {
-        Genre genre1 = new Genre(FIRST_GENRE_NAME);
-        Genre genre2 = new Genre(SECOND_GENRE_NAME);
-        Book book = bookDao.getById(THIRD_EXISTING_BOOK_ID).get();
-        bookDao.insertBookGenreRelation(THIRD_EXISTING_BOOK_ID, FIRST_GENRE_NAME);
-        bookDao.insertBookGenreRelation(THIRD_EXISTING_BOOK_ID, SECOND_GENRE_NAME);
-        List<Genre> bookGenres = bookDao.getBookGenres(book);
-
-        assertThat(bookGenres)
-                .isNotEmpty()
-                .hasSize(2)
-                .contains(genre1, genre2);
-    }
-
-    @DisplayName("должен удалять все жанры книги")
-    @Test
-    void shouldDeleteAllGenresOfTheBook() {
-        Book book = bookDao.getById(FIRST_EXISTING_BOOK_ID).get();
-        bookDao.deleteBookGenreRelations(book);
-        List<Genre> bookGenres = bookDao.getBookGenres(book);
-
-        assertThat(bookGenres).isEmpty();
-    }
-
-    @DisplayName("должен получать список всех жанров книги")
-    @Test
-    void shouldGetAListOfAllGenresOfTheBook() {
-        Genre genre1 = new Genre(FIRST_GENRE_NAME);
-        Genre genre2 = new Genre(SECOND_GENRE_NAME);
-        Book book = bookDao.getById(FOURTH_EXISTING_BOOK_ID).get();
-        List<Genre> bookGenres = bookDao.getBookGenres(book);
-
-        assertThat(bookGenres)
-                .isNotEmpty()
-                .hasSize(2)
-                .contains(genre1, genre2);
     }
 }

@@ -10,7 +10,7 @@ public class AuthorMapper implements RowMapper<Author> {
 
     @Override
     public Author mapRow(ResultSet resultSet, int i) throws SQLException {
-        return new Author(resultSet.getString(1));
+        return new Author(resultSet.getLong(1), resultSet.getString(1));
     }
 
 }
