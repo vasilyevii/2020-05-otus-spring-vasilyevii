@@ -10,6 +10,4 @@ public interface BookDao {
     void delete(Book book);
     Optional<Book> getById(long id);
     List<Book> getAll();
-    void insertBookAuthorRelation(long bookId, long authorId);
-    void deleteBookAuthorRelations(Book book);
 }

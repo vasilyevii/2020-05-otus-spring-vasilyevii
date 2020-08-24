@@ -32,7 +32,7 @@ class BookServiceImplTest {
     BookService bookService;
 
     @MockBean
-    BookDao bookDao;
+    private BookDao bookDao;
 
     @DisplayName("должен получать книгу по идентифцикатору с авторами и жанрами")
     @Test

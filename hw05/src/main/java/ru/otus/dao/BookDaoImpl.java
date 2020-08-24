@@ -2,7 +2,11 @@ package ru.otus.dao;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.otus.domain.Author;
 import ru.otus.domain.Book;
@@ -20,42 +24,14 @@ public class BookDaoImpl implements BookDao {
 
     @Override
     public long insert(Book book) {
-        final Map<String, Object> params = new HashMap<>(2);
-        params.put("NAME", book.getName());
-        params.put("GENRE_ID", addGenre(book.getGenre()));
-        jdbc.update("INSERT INTO BOOKS (NAME, GENRE_ID) VALUES (:NAME, :GENRE_ID)", params);
-        long bookId = jdbc.queryForObject("CALL SCOPE_IDENTITY()", new HashMap<>(0), Long.class);
-        addAuthors(bookId, book);
+        SqlParameterSource params = new MapSqlParameterSource()
+                .addValue("NAME", book.getName())
+                .addValue("GENRE_ID", addGenre(book.getGenre()));
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbc.update("INSERT INTO BOOKS (NAME, GENRE_ID) VALUES (:NAME, :GENRE_ID)", params, keyHolder);
+        long bookId = (long) keyHolder.getKey();
+        addBookAuthors(bookId, book.getAuthors());
         return bookId;
-    }
-
-    private void addAuthors(long bookId, Book book) {
-        deleteBookAuthorRelations(book);
-        book.getAuthors().forEach(author -> {
-            long authorId = author.getId();
-            if (authorId == 0) {
-                Optional<Author> authorByName = authorDao.getByName(author.getName());
-                if (authorByName.isEmpty()) {
-                    authorId = authorDao.insert(author);
-                } else {
-                    authorId = authorByName.get().getId();
-                }
-            }
-            insertBookAuthorRelation(bookId, authorId);
-        });
-    }
-
-    private long addGenre(Genre genre) {
-        long genreId = genre.getId();
-        if (genreId == 0) {
-            Optional<Genre> genreByName = genreDao.getByName(genre.getName());
-            if (genreByName.isEmpty()) {
-                genreId = genreDao.insert(genre);
-            } else {
-                genreId = genreByName.get().getId();
-            }
-        }
-        return genreId;
     }
 
     @Override
@@ -63,12 +39,9 @@ public class BookDaoImpl implements BookDao {
         if (book.getId() == 0) {
             throw new BookException("id is 0");
         }
-        final Map<String, Object> params = new HashMap<>(3);
-        params.put("ID", book.getId());
-        params.put("NAME", book.getName());
-        params.put("GENRE_ID", addGenre(book.getGenre()));
-        jdbc.update("UPDATE BOOKS SET NAME = :NAME, GENRE_ID = :GENRE_ID WHERE ID = :ID", params);
-        addAuthors(book.getId(), book);
+        jdbc.update("UPDATE BOOKS SET NAME = :NAME, GENRE_ID = :GENRE_ID WHERE ID = :ID", Map.of(
+                "ID", book.getId(), "NAME", book.getName(), "GENRE_ID", addGenre(book.getGenre())));
+        addBookAuthors(book.getId(), book.getAuthors());
     }
 
     @Override
@@ -76,16 +49,12 @@ public class BookDaoImpl implements BookDao {
         if (book.getId() == 0) {
             throw new BookException("id is 0");
         }
-        final Map<String, Object> params = new HashMap<>(1);
-        params.put("ID", book.getId());
-        jdbc.update("DELETE FROM BOOKS WHERE ID = :ID", params);
-        deleteBookAuthorRelations(book);
+        jdbc.update("DELETE FROM BOOKS WHERE ID = :ID", Map.of("ID", book.getId()));
+        deleteBookAuthorRelations(book.getId());
     }
 
     @Override
     public Optional<Book> getById(long id) {
-        final Map<String, Object> params = new HashMap<>(1);
-        params.put("ID", id);
         try {
             Map<Long, Book> books = jdbc.query(
                     "SELECT B.ID AS BOOK_ID, B.NAME AS BOOK_NAME, A.ID AS AUTHOR_ID, A.NAME AS AUTHOR_NAME, G.ID AS GENRE_ID, G.NAME AS GENRE_NAME FROM BOOKS B " +
@@ -93,7 +62,7 @@ public class BookDaoImpl implements BookDao {
                             "LEFT JOIN AUTHORS A ON BA.AUTHOR_ID = A.ID " +
                             "LEFT JOIN GENRES G on B.GENRE_ID = G.ID " +
                             "WHERE B.ID = :ID",
-                    params, new BookResultSetExtractor());
+                    Map.of("ID", id), new BookResultSetExtractor());
             return Optional.ofNullable(books.get(id));
         } catch (DataAccessException e) {
             return Optional.empty();
@@ -111,19 +80,38 @@ public class BookDaoImpl implements BookDao {
         return new ArrayList<>(Objects.requireNonNull(books).values());
     }
 
-    @Override
-    public void insertBookAuthorRelation(long bookId, long authorId) {
-        final Map<String, Object> params = new HashMap<>(2);
-        params.put("BOOK_ID", bookId);
-        params.put("AUTHOR_ID", authorId);
-        jdbc.update("INSERT INTO BOOKS_AUTHORS (BOOK_ID, AUTHOR_ID) VALUES (:BOOK_ID, :AUTHOR_ID)", params);
+    private void insertBookAuthorRelation(long bookId, long authorId) {
+        jdbc.update("INSERT INTO BOOKS_AUTHORS (BOOK_ID, AUTHOR_ID) VALUES (:BOOK_ID, :AUTHOR_ID)",
+                Map.of("BOOK_ID", bookId,"AUTHOR_ID", authorId));
     }
 
-    @Override
-    public void deleteBookAuthorRelations(Book book) {
-        final Map<String, Object> params = new HashMap<>(1);
-        params.put("BOOK_ID", book.getId());
-        jdbc.update("DELETE FROM BOOKS_AUTHORS WHERE BOOK_ID = :BOOK_ID", params);
+    private void deleteBookAuthorRelations(long bookId) {
+        jdbc.update("DELETE FROM BOOKS_AUTHORS WHERE BOOK_ID = :BOOK_ID",
+                Map.of("BOOK_ID", bookId));
+    }
+
+    private void addBookAuthors(long bookId, List<Author> authors) {
+        deleteBookAuthorRelations(bookId);
+        authors.forEach(author -> {
+            long authorId = author.getId();
+            if (authorId == 0) {
+                authorId = authorDao.getByName(author.getName()).map(Author::getId).orElse(authorDao.insert(author));
+            }
+            insertBookAuthorRelation(bookId, authorId);
+        });
+    }
+
+    private long addGenre(Genre genre) {
+        long genreId = genre.getId();
+        if (genreId == 0) {
+            Optional<Genre> genreByName = genreDao.getByName(genre.getName());
+            if (genreByName.isEmpty()) {
+                genreId = genreDao.insert(genre);
+            } else {
+                genreId = genreByName.get().getId();
+            }
+        }
+        return genreId;
     }
 
 }
