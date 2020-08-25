@@ -2,4 +2,6 @@ spring:
   shell:
     interactive:
       enabled: false
-
+  datasource:
+    url: jdbc:h2:mem:testdb
+    data: test-data.sql

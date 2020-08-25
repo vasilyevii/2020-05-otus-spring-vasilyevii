@@ -29,7 +29,7 @@ class BookServiceImplTest {
     private static final String FIRST_GENRE_NAME = "Dystopian Fiction";
 
     @Autowired
-    BookService bookService;
+    private BookService bookService;
 
     @MockBean
     private BookDao bookDao;

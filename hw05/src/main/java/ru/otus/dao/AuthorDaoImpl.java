@@ -24,7 +24,7 @@ public class AuthorDaoImpl implements AuthorDao {
                 .addValue("NAME", author.getName());
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update("INSERT INTO AUTHORS (NAME) VALUES (:NAME)", params, keyHolder);
-        return (long) keyHolder.getKey();
+        return keyHolder.getKey().longValue();
     }
 
     @Override

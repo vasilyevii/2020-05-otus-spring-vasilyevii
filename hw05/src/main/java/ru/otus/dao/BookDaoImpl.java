@@ -29,7 +29,7 @@ public class BookDaoImpl implements BookDao {
                 .addValue("GENRE_ID", addGenre(book.getGenre()));
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update("INSERT INTO BOOKS (NAME, GENRE_ID) VALUES (:NAME, :GENRE_ID)", params, keyHolder);
-        long bookId = (long) keyHolder.getKey();
+        long bookId = keyHolder.getKey().longValue();
         addBookAuthors(bookId, book.getAuthors());
         return bookId;
     }
@@ -49,8 +49,8 @@ public class BookDaoImpl implements BookDao {
         if (book.getId() == 0) {
             throw new BookException("id is 0");
         }
-        jdbc.update("DELETE FROM BOOKS WHERE ID = :ID", Map.of("ID", book.getId()));
         deleteBookAuthorRelations(book.getId());
+        jdbc.update("DELETE FROM BOOKS WHERE ID = :ID", Map.of("ID", book.getId()));
     }
 
     @Override

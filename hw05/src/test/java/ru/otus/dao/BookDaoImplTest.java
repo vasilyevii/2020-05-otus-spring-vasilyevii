@@ -31,8 +31,10 @@ class BookDaoImplTest {
 
     private static final long FIRST_AUTHOR_ID = 1;
     private static final String FIRST_AUTHOR_NAME = "George Orwell";
-    private static final long SECOND_AUTHOR_ID = 4;
-    private static final String SECOND_AUTHOR_NAME = "King";
+    private static final long SECOND_AUTHOR_ID = 2;
+    private static final String SECOND_AUTHOR_NAME = "Stephane Faroult";
+    private static final long FOURTH_AUTHOR_ID = 4;
+    private static final String FOURTH_AUTHOR_NAME = "King";
     private static final long FIRST_GENRE_ID = 1;
     private static final String FIRST_GENRE_NAME = "Dystopian Fiction";
     private static final long SECOND_GENRE_ID = 2;
@@ -66,7 +68,7 @@ class BookDaoImplTest {
         Book book = bookDao.getById(FIRST_EXISTING_BOOK_ID).get();
         book.setName(NEW_BOOK_NAME);
         book.getAuthors().clear();
-        Author secondAuthor = new Author(0, SECOND_AUTHOR_NAME);
+        Author secondAuthor = new Author(0, FOURTH_AUTHOR_NAME);
         book.addAuthor(secondAuthor);
         Genre newGenre = new Genre(0, SECOND_GENRE_NAME);
         book.setGenre(newGenre);
@@ -77,7 +79,7 @@ class BookDaoImplTest {
                 () -> assertThat(actualBook).isNotEmpty(),
                 () -> assertThat(actualBook.get().getId()).isEqualTo(FIRST_EXISTING_BOOK_ID),
                 () -> assertThat(actualBook.get().getName()).isEqualTo(NEW_BOOK_NAME),
-                () -> assertThat(actualBook.get().getAuthors()).hasSize(1).contains(new Author(SECOND_AUTHOR_ID, SECOND_AUTHOR_NAME)),
+                () -> assertThat(actualBook.get().getAuthors()).hasSize(1).contains(new Author(FOURTH_AUTHOR_ID, FOURTH_AUTHOR_NAME)),
                 () -> assertThat(actualBook.get().getGenre()).isEqualTo(new Genre(SECOND_GENRE_ID, SECOND_GENRE_NAME))
         );
     }

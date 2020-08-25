@@ -24,7 +24,7 @@ public class GenreDaoImpl implements GenreDao {
                 .addValue("NAME", genre.getName());
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update("INSERT INTO GENRES (NAME) VALUES (:NAME)", params, keyHolder);
-        return (long) keyHolder.getKey();
+        return keyHolder.getKey().longValue();
     }
 
     @Override
