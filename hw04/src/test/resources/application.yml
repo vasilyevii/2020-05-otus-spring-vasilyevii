@@ -1,0 +1,10 @@
+quiz:
+  locale: en
+  questionsFileName: "questions_en.csv"
+  commaDelimiter: ","
+
+spring:
+  shell:
+    interactive:
+      enabled: false
+
