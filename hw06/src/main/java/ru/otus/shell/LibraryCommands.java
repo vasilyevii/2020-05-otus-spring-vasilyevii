@@ -1,6 +1,7 @@
 package ru.otus.shell;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
@@ -9,13 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
-import ru.otus.repositories.BookRepositoryJpa;
 import ru.otus.services.BookService;
 
 import java.util.*;
 
 @ShellComponent
 @RequiredArgsConstructor
+@Transactional
 public class LibraryCommands {
 
     @Autowired
@@ -27,23 +28,23 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Get book by ID", key = {"g", "get"})
-    public void getBook(int bookId) {
+    public void getBookById(int bookId) {
         System.out.println(bookService.findById(bookId));
     }
 
     @ShellMethod(value = "Add book", key = {"a", "add"})
     public void addBook(@ShellOption Integer bookId, @ShellOption String bookName,
-                        @ShellOption(defaultValue = "") String author,
-                        @ShellOption(defaultValue = "") String genre) {
+                        @ShellOption(defaultValue = "") String authorName,
+                        @ShellOption(defaultValue = "") String genreName) {
 
         List<Author> authors = new ArrayList<>();
-        Arrays.asList(author.split(";")).forEach(str -> {
-            String authorName = str.trim();
+        Arrays.asList(authorName.split(";")).forEach(str -> {
+            String authorTrimmedName = str.trim();
             if (!authorName.isEmpty()) {
-                authors.add(new Author(0, authorName));
+                authors.add(new Author(0, authorTrimmedName));
             }
         });
-        Book book = bookService.save(new Book(bookId, bookName, authors, new Genre(0, genre)));
+        Book book = bookService.save(new Book(bookId, bookName, authors, new Genre(0, genreName)));
         System.out.println("Book added! " + book);
     }
 

@@ -25,13 +25,9 @@ public class Book {
     private String name;
 
     @Fetch(FetchMode.SUBSELECT)
-    @BatchSize(size = 5)
-    @ManyToMany(targetEntity = Author.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "books_authors", joinColumns = @JoinColumn(name = "book_id"), inverseJoinColumns = @JoinColumn(name = "author_id"))
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Author> authorList;
 
-    @OneToOne(targetEntity = Genre.class, cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "genre_id")
+    @ManyToOne(cascade = CascadeType.ALL)
     private Genre genre;
-
 }

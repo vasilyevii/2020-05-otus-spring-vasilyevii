@@ -4,13 +4,18 @@ spring:
     initialization-mode: always
     data: test-data.sql
 
+
   jpa:
     generate-ddl: false
     hibernate:
       ddl-auto: none
+
 
     show-sql: true
     properties:
       hibernate:
         format_sql: true
 
+  shell:
+    interactive:
+      enabled: false

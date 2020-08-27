@@ -12,8 +12,4 @@ public interface BookRepositoryJpa {
     void deleteById(long id);
     List<Book> findAll();
     List<Book> findByName(String name);
-
-    Comment addComment(Comment comment);
-    List<Comment> findAllCommentsByBookId(long bookId);
-    void deleteAllCommentsByBookId(long bookId);
 }

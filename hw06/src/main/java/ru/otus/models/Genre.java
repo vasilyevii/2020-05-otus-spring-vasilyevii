@@ -3,6 +3,7 @@ package ru.otus.models;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import javax.persistence.*;
 
@@ -18,4 +19,5 @@ public class Genre {
 
     @Column(name = "name", nullable = false, unique = true)
     private String name;
+
 }

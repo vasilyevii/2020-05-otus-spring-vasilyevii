@@ -17,7 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Репозиторий на основе Jpa для работы с книгами ")
 @DataJpaTest
-@Import(BookRepositoryJpaImpl.class)
+@Import({BookRepositoryJpaImpl.class, AuthorRepositoryJpaImpl.class,
+        GenreRepositoryJpaImpl.class, CommentRepositoryJpaImpl.class})
 class BookRepositoryJpaImplTest {
 
     private static final long NEW_BOOK_ID = 4L;
@@ -38,7 +39,10 @@ class BookRepositoryJpaImplTest {
     private static final int EXPECTED_NUMBER_OF_COMMENTS = 2;
 
     @Autowired
-    private BookRepositoryJpaImpl repo;
+    private BookRepositoryJpaImpl bookRepo;
+
+    @Autowired
+    private CommentRepositoryJpa commentRepo;
 
     @Autowired
     private TestEntityManager em;
@@ -46,7 +50,7 @@ class BookRepositoryJpaImplTest {
     @DisplayName(" должен находить все книги")
     @Test
     void shouldFindAllBooks() {
-        List<Book> books = repo.findAll();
+        List<Book> books = bookRepo.findAll();
         assertThat(books).isNotNull().hasSize(EXPECTED_NUMBER_OF_BOOKS)
                 .allMatch(s -> !s.getName().equals(""))
                 .allMatch(s -> s.getAuthorList() != null && s.getAuthorList().size() > 0)
@@ -62,7 +66,7 @@ class BookRepositoryJpaImplTest {
         Genre genre = new Genre(0, THIRD_GENRE_NAME);
         Book expectedBook = new Book(0, NEW_BOOK_NAME, authors, genre);
 
-        Book actualBook = repo.save(expectedBook);
+        Book actualBook = bookRepo.save(expectedBook);
 
         assertThat(actualBook)
                 .hasFieldOrPropertyWithValue("id", NEW_BOOK_ID)
@@ -81,7 +85,7 @@ class BookRepositoryJpaImplTest {
         expectedBook.getAuthorList().add(author2);
         Genre genre2 = em.find(Genre.class, SECOND_GENRE_ID);
         expectedBook.setGenre(genre2);
-        Book actualBook = repo.save(expectedBook);
+        Book actualBook = bookRepo.save(expectedBook);
 
         assertThat(actualBook)
                 .hasFieldOrPropertyWithValue("id", FIRST_BOOK_ID)
@@ -93,7 +97,7 @@ class BookRepositoryJpaImplTest {
     @DisplayName(" должен находить книгу по ID")
     @Test
     void shouldFindBookById() {
-        Optional<Book> actualBook = repo.findById(THIRD_BOOK_ID);
+        Optional<Book> actualBook = bookRepo.findById(THIRD_BOOK_ID);
         assertThat(actualBook).isNotEmpty().get()
                 .hasFieldOrPropertyWithValue("name", THIRD_BOOK_NAME);
     }
@@ -103,7 +107,7 @@ class BookRepositoryJpaImplTest {
     void shouldDeleteBookById() {
         Book book = em.find(Book.class, SECOND_BOOK_ID);
         assertThat(book).isNotNull();
-        repo.deleteById(SECOND_BOOK_ID);
+        bookRepo.deleteById(SECOND_BOOK_ID);
         em.clear();
         book = em.find(Book.class, SECOND_BOOK_ID);
         assertThat(book).isNull();
@@ -112,7 +116,7 @@ class BookRepositoryJpaImplTest {
     @DisplayName(" должен находить книгу по имени")
     @Test
     void shouldFindBookByName() {
-        List<Book> actualBook = repo.findByName(THIRD_BOOK_NAME);
+        List<Book> actualBook = bookRepo.findByName(THIRD_BOOK_NAME);
         assertThat(actualBook).hasSize(1)
                 .first().hasFieldOrPropertyWithValue("id", THIRD_BOOK_ID);
     }
@@ -121,7 +125,7 @@ class BookRepositoryJpaImplTest {
     @Test
     void shouldAddComment() {
         Book book = em.find(Book.class, THIRD_BOOK_ID);
-        Comment comment1 = repo.addComment(new Comment(0, book, COMMENT_USER_NAME, COMMENT_TEXT));
+        Comment comment1 = commentRepo.addComment(new Comment(0, book, COMMENT_USER_NAME, COMMENT_TEXT));
         assertThat(comment1)
                 .hasFieldOrPropertyWithValue("book", book)
                 .hasFieldOrPropertyWithValue("userName", COMMENT_USER_NAME)
@@ -131,7 +135,7 @@ class BookRepositoryJpaImplTest {
     @DisplayName(" должен находить все комментарии книги по ID")
     @Test
     void shouldFindAllCommentsByBookId() {
-        List<Comment> comments = repo.findAllCommentsByBookId(THIRD_BOOK_ID);
+        List<Comment> comments = commentRepo.findAllCommentsByBookId(THIRD_BOOK_ID);
         assertThat(comments).hasSize(EXPECTED_NUMBER_OF_COMMENTS)
                 .allMatch(s -> !s.getText().equals(""))
                 .allMatch(s -> s.getBook() != null)
@@ -141,8 +145,8 @@ class BookRepositoryJpaImplTest {
     @DisplayName(" должен удалять все комментарии книги по ID")
     @Test
     void deleteAllCommentsByBookId() {
-        repo.deleteAllCommentsByBookId(THIRD_BOOK_ID);
-        List<Comment> comments = repo.findAllCommentsByBookId(THIRD_BOOK_ID);
+        commentRepo.deleteAllCommentsByBookId(THIRD_BOOK_ID);
+        List<Comment> comments = commentRepo.findAllCommentsByBookId(THIRD_BOOK_ID);
         assertThat(comments).isEmpty();
     }
 }
