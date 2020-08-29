@@ -6,7 +6,6 @@ import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
 import ru.otus.models.Genre;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -19,8 +18,7 @@ import java.util.*;
 @Transactional
 public class LibraryCommands {
 
-    @Autowired
-    private BookService bookService;
+    private final BookService bookService;
 
     @ShellMethod(value = "Get all books", key = {"l", "list"})
     public void getAllBooks() {
@@ -28,12 +26,12 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Get book by ID", key = {"g", "get"})
-    public void getBookById(int bookId) {
+    public void getBookById(long bookId) {
         System.out.println(bookService.findById(bookId));
     }
 
     @ShellMethod(value = "Add book", key = {"a", "add"})
-    public void addBook(@ShellOption Integer bookId, @ShellOption String bookName,
+    public void addBook(@ShellOption long bookId, @ShellOption String bookName,
                         @ShellOption(defaultValue = "") String authorName,
                         @ShellOption(defaultValue = "") String genreName) {
 
@@ -49,12 +47,12 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Delete book", key = {"d", "del"})
-    public void deleteBook(int bookId) {
+    public void deleteBook(long bookId) {
         bookService.deleteById(bookId);
     }
 
     @ShellMethod(value = "Add book comment", key = {"ac", "add comment"})
-    public void addBookComment(@ShellOption Integer commentId, @ShellOption Integer bookId,
+    public void addBookComment(@ShellOption long commentId, @ShellOption long bookId,
                                @ShellOption String userName, @ShellOption String text) {
         Optional<Book> book = bookService.findById(bookId);
         if (book.isPresent()) {
@@ -66,12 +64,12 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Get all book comments", key = {"lc", "list comments"})
-    public void getAllBookComments(@ShellOption Integer bookId) {
+    public void getAllBookComments(@ShellOption long bookId) {
         bookService.findAllCommentsByBookId(bookId).forEach(System.out::println);
     }
 
     @ShellMethod(value = "Delete all book comments", key = {"dc", "del comment"})
-    public void deleteAllBookComments(@ShellOption Integer bookId) {
+    public void deleteAllBookComments(@ShellOption long bookId) {
         bookService.deleteAllCommentsByBookId(bookId);
     }
 

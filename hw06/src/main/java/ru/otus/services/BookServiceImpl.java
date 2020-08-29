@@ -1,33 +1,42 @@
 package ru.otus.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
+import ru.otus.models.Genre;
+import ru.otus.repositories.AuthorRepositoryJpa;
 import ru.otus.repositories.BookRepositoryJpa;
 import ru.otus.repositories.CommentRepositoryJpa;
 import ru.otus.repositories.GenreRepositoryJpa;
-
-
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
 
-    @Autowired
-    private BookRepositoryJpa bookRepo;
-
-    @Autowired
-    GenreRepositoryJpa genreRepo;
-
-    @Autowired
-    CommentRepositoryJpa commentRepo;
+    private final BookRepositoryJpa bookRepo;
+    private final GenreRepositoryJpa genreRepo;
+    private final AuthorRepositoryJpa authorRepo;
+    private final CommentRepositoryJpa commentRepo;
 
     @Override
     @Transactional
     public Book save(Book book) {
+        List<Genre> genreByName = genreRepo.findByName(book.getGenre().getName());
+        if (!genreByName.isEmpty()) {
+            book.setGenre(genreByName.get(0));
+        }
+        List<Author> authorList = book.getAuthorList();
+        for (int i = 0; i < authorList.size(); i++) {
+            List<Author> authorByName = authorRepo.findByName(authorList.get(i).getName());
+            if (!authorByName.isEmpty()) {
+                authorList.set(i, authorByName.get(0));
+            }
+        }
         return bookRepo.save(book);
     }
 
@@ -47,12 +56,6 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     public List<Book> findAll() {
         return bookRepo.findAll();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Book> findByName(String name) {
-        return bookRepo.findByName(name);
     }
 
     @Override
