@@ -1,7 +1,6 @@
 package ru.otus.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import ru.otus.models.Book;
 import ru.otus.models.Comment;
 
 import java.util.List;

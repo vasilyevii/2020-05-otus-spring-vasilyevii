@@ -16,11 +16,9 @@ import java.util.*;
 
 @ShellComponent
 @RequiredArgsConstructor
-@Transactional
 public class LibraryCommands {
 
-    @Autowired
-    private BookService bookService;
+    private final BookService bookService;
 
     @ShellMethod(value = "Get all books", key = {"l", "list"})
     public void getAllBooks() {
@@ -33,28 +31,21 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Add book", key = {"a", "add"})
-    public void addBook(@ShellOption Integer bookId, @ShellOption String bookName,
+    public void addBook(@ShellOption long bookId, @ShellOption String bookName,
                         @ShellOption(defaultValue = "") String authorName,
                         @ShellOption(defaultValue = "") String genreName) {
 
-        List<Author> authors = new ArrayList<>();
-        Arrays.asList(authorName.split(";")).forEach(str -> {
-            String authorTrimmedName = str.trim();
-            if (!authorName.isEmpty()) {
-                authors.add(new Author(0, authorTrimmedName));
-            }
-        });
-        Book book = bookService.saveBook(new Book(bookId, bookName, authors, new Genre(0, genreName)));
+        Book book = bookService.saveBook(bookId, bookName, authorName, genreName);
         System.out.println("Book added! " + book);
     }
 
     @ShellMethod(value = "Delete book", key = {"d", "del"})
-    public void deleteBook(int bookId) {
+    public void deleteBook(@ShellOption long bookId) {
         bookService.deleteBookById(bookId);
     }
 
     @ShellMethod(value = "Add book comment", key = {"ac", "add comment"})
-    public void addBookComment(@ShellOption Integer commentId, @ShellOption Integer bookId,
+    public void addBookComment(@ShellOption long commentId, @ShellOption long bookId,
                                @ShellOption String userName, @ShellOption String text) {
         Optional<Book> book = bookService.findBookById(bookId);
         if (book.isPresent()) {
@@ -66,12 +57,13 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Get all book comments", key = {"lc", "list comments"})
-    public void getAllBookComments(@ShellOption Integer bookId) {
+    @Transactional
+    public void getAllBookComments(@ShellOption long bookId) {
         bookService.findAllCommentsByBookId(bookId).forEach(System.out::println);
     }
 
     @ShellMethod(value = "Delete all book comments", key = {"dc", "del comment"})
-    public void deleteAllBookComments(@ShellOption Integer bookId) {
+    public void deleteAllBookComments(@ShellOption long bookId) {
         bookService.deleteAllCommentsByBookId(bookId);
     }
 

@@ -1,6 +1,6 @@
 package ru.otus.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.models.Author;
@@ -12,31 +12,38 @@ import ru.otus.repositories.BookRepository;
 import ru.otus.repositories.CommentRepository;
 import ru.otus.repositories.GenreRepository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class BookServiceImpl implements BookService {
 
-    @Autowired
-    private BookRepository bookRepo;
-
-    @Autowired
-    GenreRepository genreRepo;
-
-    @Autowired
-    AuthorRepository authorRepo;
-
-    @Autowired
-    CommentRepository commentRepo;
+    private final BookRepository bookRepo;
+    private final GenreRepository genreRepo;
+    private final AuthorRepository authorRepo;
+    private final CommentRepository commentRepo;
 
     @Override
     @Transactional
-    public Book saveBook(Book book) {
+    public Book saveBook(long bookId, String bookName, String authorName, String genreName) {
+
+        List<Author> authors = new ArrayList<>();
+        Arrays.asList(authorName.split(";")).forEach(str -> {
+            String authorTrimmedName = str.trim();
+            if (!authorName.isEmpty()) {
+                authors.add(new Author(0, authorTrimmedName));
+            }
+        });
+        Book book = new Book(bookId, bookName, authors, new Genre(0, genreName));
+
         List<Genre> genreByName = genreRepo.findByName(book.getGenre().getName());
         if (!genreByName.isEmpty()) {
             book.setGenre(genreByName.get(0));
         }
+
         List<Author> authorList = book.getAuthorList();
         for (int i = 0; i < authorList.size(); i++) {
             List<Author> authorByName = authorRepo.findByName(authorList.get(i).getName());
@@ -44,6 +51,7 @@ public class BookServiceImpl implements BookService {
                 authorList.set(i, authorByName.get(0));
             }
         }
+
         return bookRepo.save(book);
     }
 
