@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document
 public class Comment {
     @Id
-    private long id;
+    private String id;
     private Book book;
     private String userName;
     private String text;

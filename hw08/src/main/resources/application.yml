@@ -5,4 +5,3 @@ spring:
       database: library
       host: localhost
       port: 27017
-
