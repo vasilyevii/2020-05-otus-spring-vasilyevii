@@ -1,8 +1,8 @@
 package ru.otus.services;
 
+import ru.otus.dto.CommentDto;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
-import ru.otus.models.Genre;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +14,6 @@ public interface BookService {
     List<Book> findAllBooks();
 
     Comment addComment(Comment comment);
-    List<Comment> findAllCommentsByBookId(long bookId);
+    List<CommentDto> findAllCommentsByBookId(long bookId);
     void deleteAllCommentsByBookId(long bookId);
 }

@@ -2,6 +2,7 @@ package ru.otus.shell;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.dto.CommentDto;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
@@ -57,7 +58,6 @@ public class LibraryCommands {
     }
 
     @ShellMethod(value = "Get all book comments", key = {"lc", "list comments"})
-    @Transactional
     public void getAllBookComments(@ShellOption long bookId) {
         bookService.findAllCommentsByBookId(bookId).forEach(System.out::println);
     }

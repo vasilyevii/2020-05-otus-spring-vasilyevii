@@ -3,6 +3,7 @@ package ru.otus.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.otus.dto.CommentDto;
 import ru.otus.models.Author;
 import ru.otus.models.Book;
 import ru.otus.models.Comment;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -82,8 +84,11 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Comment> findAllCommentsByBookId(long bookId) {
-        return commentRepo.findAllByBook_Id(bookId);
+    public List<CommentDto> findAllCommentsByBookId(long bookId) {
+        return commentRepo.findAllByBook_Id(bookId)
+                .stream()
+                .map(CommentDto::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
