@@ -1,0 +1,7 @@
+spring:
+  data:
+    mongodb:
+      authentication-database: none
+      database: libraryV2
+      host: localhost
+      port: 27017
