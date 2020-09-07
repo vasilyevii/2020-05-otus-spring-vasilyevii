@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="keywords" th:content="${keywords}"/>
+    <title>List of all books</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        .books, .books td {
+            border: 1px solid lightgray;
+            padding: 5px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+    </style>
+    <script src="webjars/jquery/3.3.1/jquery.min.js"></script>
+    <script>
+
+        function reloadBookList() {
+            $("#books-table").children().remove();
+            $(function () {
+                $.get('/api/books').done(function (books) {
+                    books.forEach(function (book) {
+                        $('tbody').append(`
+                    <tr>
+                        <td>${book.id}</td>
+                        <td>${book.name}</td>
+                        <td>${book.genre}</td>
+                        <td>${book.authorList}</td>
+                    </tr>
+                `)
+                    });
+                })
+            });
+        }
+
+        function addBook() {
+            const bookJson = {
+                name: $("#add-book-name-input").val(),
+                genre: $("#add-book-genre-input").val(),
+                authorList: $("#add-book-authorList-input").val()
+            };
+            fetch('/api/books', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bookJson),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                reloadBookList();
+            })
+        }
+
+    </script>
+</head>
+<body>
+
+<h1>Book list:</h1>
+<button onclick="reloadBookList()">Reload</button>
+<table class="books">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Genre</th>
+        <th>Authors</th>
+    </tr>
+    </thead>
+    <tbody id="books-table">
+    </tbody>
+</table>
+
+<h1>Add book:</h1>
+<!--<form id="add-form" th:action="@{/api/books}" th:method="post" action="list.html">-->
+<div class="row">
+    <label for="add-book-name-input">Name:</label>
+    <input id="add-book-name-input" name="name" type="text" value="Fahrenheit 451"/>
+</div>
+
+<div class="row">
+    <label for="add-book-genre-input">Genre:</label>
+    <input id="add-book-genre-input" name="genre" type="text" value="Dystopian Fiction"/>
+</div>
+
+<div class="row">
+    <label for="add-book-authorList-input">Authors:</label>
+    <input id="add-book-authorList-input" name="authorList" type="text" value="Ray Bradbury; King"/>
+</div>
+
+<div class="row">
+    <button onclick="addBook()">Save</button>
+</div>
+
+<!--</form>-->
+
+<script>
+    reloadBookList();
+</script>
+</body>
+</html>
