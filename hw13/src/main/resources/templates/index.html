@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+</head>
+<body>
+<a th:href="@{login}" href="login">login</a>
+<a th:href="@{logout}" href="logout">logout</a>
+<br><br>
+<a th:href="@{books/list}" href="books/list.html">books</a><br>
+<i>Доступ с ролью user или admin.</i><br>
+<i>Для пользователей с ролью User есть ACL на чтение и редактирование по жанру книгу и на саму книгу, если он ее создал</i><br>
+<i>Для пользователей с ролью Admin доступны все книги и все операции над книгами</i><br>
+<i>Доступные жанры пользователя указываются в пользователе</i><br>
+<i>Если пользователь создал новую книгу, то книга ему будет доступна без ограничения по жанру</i><br>
+</body>
+</html>
